@@ -1,0 +1,25 @@
+a = input("Введите слово из маленьких латинских букв: ")
+
+b = {'a', 'e', 'i', 'o', 'u'}  # список букв
+c = 0  # согласные буквы
+d = 0  # гласные буквы
+
+# Словарь для подсчета каждой гласной
+vowel_stats = {'a': 0, 'e': 0, 'i': 0, 'o': 0, 'u': 0}
+
+for letter in a:
+    if letter in b:
+        d += 1
+        vowel_stats[letter] += 1
+    else:
+        c += 1
+
+print(f"Общее количество гласных: {d}")
+print(f"Общее количество согласных: {c}")
+
+# Проверяем, какие гласные есть в слове, а какие нет
+for vowel in vowel_stats:
+    if vowel_stats[vowel] == 0:
+        print(f"{vowel}: False")
+    else:
+        print(f"{vowel}: {vowel_stats[vowel]}")
