@@ -1,0 +1,12 @@
+X = int(input())
+count = 0
+sqrt_X = int(X ** 0.5) + 1  # Чтобы не пропустить корень, если X — квадрат
+
+for i in range(1, sqrt_X):
+    if X % i == 0:
+        if i * i == X:  # Если X — квадрат 
+            count += 1
+        else:
+            count += 2  # Учитываем i и X/i
+
+print(count)
