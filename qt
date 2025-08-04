@@ -1,0 +1,15 @@
+# Чтение первого списка
+n = int(input())
+list1 = set()
+for _ in range(n):
+    list1.add(int(input()))
+
+# Чтение второго списка
+m = int(input())
+list2 = set()
+for _ in range(m):
+    num = int(input())
+    if num in list1:  # Проверяем наличие числа в первом множестве
+        list2.add(num)
+
+print(len(list2))
