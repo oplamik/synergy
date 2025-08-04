@@ -1,0 +1,5 @@
+n = int(input())  # Чтение количества чисел
+numbers = [int(input()) for _ in range(n)]  # Чтение N чисел в список
+reversed_numbers = numbers[::-1]  # Переворачиваем список
+for num in reversed_numbers:  # Выводим числа по одному на строку
+    print(num)
