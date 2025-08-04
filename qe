@@ -1,0 +1,16 @@
+m = int(input())  # Максимальная масса лодки
+n = int(input())  # Количество рыбаков
+weights = [int(input()) for _ in range(n)]  # Веса рыбаков
+weights.sort()  # Сортируем веса
+
+left = 0
+right = n - 1
+boats = 0
+
+while left <= right:
+    if weights[left] + weights[right] <= m:
+        left += 1  # Берем самого легкого и самого тяжелого
+    right -= 1  # Самого тяжелого всегда берем
+    boats += 1  # Увеличиваем счетчик лодок
+
+print(boats)
