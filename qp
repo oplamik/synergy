@@ -1,0 +1,144 @@
+import collections
+
+# Инициализация базы данных
+pets = {
+    1: {
+        "Мухтар": {
+            "Вид питомца": "Собака",
+            "Возраст питомца": 9,
+            "Имя владельца": "Павел"
+        }
+    },
+    2: {
+        "Каа": {
+            "Вид питомца": "желторотый питон",
+            "Возраст питомца": 19,
+            "Имя владельца": "Саша"
+        }
+    }
+}
+
+def get_suffix(age):
+    """Возвращает правильное склонение для возраста"""
+    if 11 <= age % 100 <= 14:
+        return 'лет'
+    last_digit = age % 10
+    if last_digit == 1:
+        return 'год'
+    elif 2 <= last_digit <= 4:
+        return 'года'
+    else:
+        return 'лет'
+
+def get_pet(ID):
+    """Возвращает информацию о питомце по ID или False если не найден"""
+    return pets.get(ID, False)
+
+def pets_list():
+    """Выводит список всех питомцев"""
+    for ID, pet_info in pets.items():
+        pet_name = list(pet_info.keys())[0]
+        print(f"ID: {ID}, Кличка: {pet_name}")
+
+def create():
+    """Добавляет новую запись о питомце"""
+    try:
+        last_id = collections.deque(pets, maxlen=1)[0] if pets else 0
+    except IndexError:
+        last_id = 0
+    new_id = last_id + 1
+    
+    pet_name = input("Введите кличку питомца: ")
+    pet_type = input("Введите вид питомца: ")
+    pet_age = int(input("Введите возраст питомца: "))
+    owner_name = input("Введите имя владельца: ")
+    
+    pets[new_id] = {
+        pet_name: {
+            "Вид питомца": pet_type,
+            "Возраст питомца": pet_age,
+            "Имя владельца": owner_name
+        }
+    }
+    print(f"Добавлен новый питомец с ID {new_id}")
+
+def read():
+    """Выводит информацию о питомце"""
+    ID = int(input("Введите ID питомца: "))
+    pet_info = get_pet(ID)
+    
+    if not pet_info:
+        print("Питомец с таким ID не найден")
+        return
+    
+    pet_name = list(pet_info.keys())[0]
+    pet_data = pet_info[pet_name]
+    age = pet_data["Возраст питомца"]
+    suffix = get_suffix(age)
+    
+    print(f'Это {pet_data["Вид питомца"]} по кличке "{pet_name}". '
+          f'Возраст питомца: {age} {suffix}. '
+          f'Имя владельца: {pet_data["Имя владельца"]}')
+
+def update():
+    """Обновляет информацию о питомце"""
+    ID = int(input("Введите ID питомца для обновления: "))
+    pet_info = get_pet(ID)
+    
+    if not pet_info:
+        print("Питомец с таким ID не найден")
+        return
+    
+    pet_name = list(pet_info.keys())[0]
+    print(f"Текущая информация о питомце {pet_name}:")
+    read()
+    
+    print("\nВведите новые данные (оставьте пустым, чтобы не изменять):")
+    new_type = input(f"Вид питомца [{pet_info[pet_name]['Вид питомца']}]: ") or pet_info[pet_name]['Вид питомца']
+    new_age = input(f"Возраст питомца [{pet_info[pet_name]['Возраст питомца']}]: ") or pet_info[pet_name]['Возраст питомца']
+    new_owner = input(f"Имя владельца [{pet_info[pet_name]['Имя владельца']}]: ") or pet_info[pet_name]['Имя владельца']
+    
+    pets[ID] = {
+        pet_name: {
+            "Вид питомца": new_type,
+            "Возраст питомца": int(new_age),
+            "Имя владельца": new_owner
+        }
+    }
+    print("Информация обновлена")
+
+def delete():
+    """Удаляет запись о питомце"""
+    ID = int(input("Введите ID питомца для удаления: "))
+    if ID in pets:
+        pet_name = list(pets[ID].keys())[0]
+        del pets[ID]
+        print(f"Питомец {pet_name} (ID: {ID}) удален")
+    else:
+        print("Питомец с таким ID не найден")
+
+# Основной цикл программы
+def main():
+    print("Добро пожаловать в систему учета питомцев!")
+    print("Доступные команды: create, read, update, delete, list, stop")
+    
+    while True:
+        command = input("\nВведите команду: ").lower()
+        
+        if command == 'stop':
+            break
+        elif command == 'create':
+            create()
+        elif command == 'read':
+            read()
+        elif command == 'update':
+            update()
+        elif command == 'delete':
+            delete()
+        elif command == 'list':
+            pets_list()
+        else:
+            print("Неизвестная команда. Попробуйте снова.")
+
+if __name__ == "__main__":
+    main()
