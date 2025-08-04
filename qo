@@ -1,0 +1,25 @@
+def factorial(n):
+    """Вычисляет факториал числа n"""
+    if n == 0 or n == 1:
+        return 1
+    result = 1
+    for i in range(2, n + 1):
+        result *= i
+    return result
+
+def factorial_sequence(start_num):
+    """Создает список факториалов от факториала start_num до 1"""
+    # Вычисляем факториал начального числа
+    first_fact = factorial(start_num)
+    
+    # Создаем список факториалов в убывающем порядке
+    fact_list = []
+    for num in range(first_fact, 0, -1):
+        fact_list.append(factorial(num))
+    
+    return fact_list
+
+# Пример использования
+input_num = 3
+result = factorial_sequence(input_num)
+print(result)  
