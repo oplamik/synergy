@@ -1,0 +1,70 @@
+class Turtle:
+    def __init__(self, x=0, y=0, s=1):
+        """Инициализация черепашки с начальными координатами (x, y) и шагом s"""
+        self.x = x
+        self.y = y
+        self.s = s
+    
+    def go_up(self):
+        """Увеличивает координату y на шаг s"""
+        self.y += self.s
+    
+    def go_down(self):
+        """Уменьшает координату y на шаг s"""
+        self.y -= self.s
+    
+    def go_left(self):
+        """Уменьшает координату x на шаг s"""
+        self.x -= self.s
+    
+    def go_right(self):
+        """Увеличивает координату x на шаг s"""
+        self.x += self.s
+    
+    def evolve(self):
+        """Увеличивает шаг s на 1"""
+        self.s += 1
+    
+    def degrade(self):
+        """Уменьшает шаг s на 1. Если s станет ≤ 0, вызывает ошибку"""
+        if self.s <= 1:
+            raise ValueError("Шаг не может быть меньше или равен 0")
+        self.s -= 1
+    
+    def count_moves(self, x2, y2):
+        """
+        Возвращает минимальное количество действий для достижения (x2, y2)
+        Алгоритм:
+        1. Вычисляем разницу по x и y
+        2. Для каждой оси делим разницу на шаг s (с округлением вверх)
+        3. Суммируем результаты
+        """
+        dx = abs(x2 - self.x)
+        dy = abs(y2 - self.y)
+        
+        # Вычисляем количество шагов по каждой оси с округлением вверх
+        steps_x = (dx + self.s - 1) // self.s
+        steps_y = (dy + self.s - 1) // self.s
+        
+        return steps_x + steps_y
+
+# Пример использования
+t = Turtle(0, 0, 2)  # Черепашка в (0, 0) с шагом 2
+
+t.go_up()            # y = 2
+t.go_right()         # x = 2
+print(f"Позиция: ({t.x}, {t.y})")  # Позиция: (2, 2)
+
+t.evolve()           # s = 3
+t.go_left()          # x = -1
+print(f"Позиция: ({t.x}, {t.y})")  # Позиция: (-1, 2)
+
+try:
+    t.degrade()      # s = 2
+    t.degrade()      # s = 1
+    t.degrade()      # Ошибка!
+except ValueError as e:
+    print(e)         # Шаг не может быть меньше или равен 0
+
+moves = t.count_moves(5, 5)
+print(f"Минимальное число шагов до (5,5): {moves}")  # Минимальное число шагов до (5,5): 5
