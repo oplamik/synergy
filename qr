@@ -1,0 +1,4 @@
+n = int(input())  # Чтение количества чисел
+numbers = list(map(int, input().split()))  # Чтение чисел в список
+unique_numbers = set(numbers)  # Создание множества (удаляет дубликаты)
+print(len(unique_numbers))  # Вывод количества уникальных чисел
