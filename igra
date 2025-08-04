@@ -1,0 +1,246 @@
+import random
+import time
+import os
+import json
+from enum import Enum
+
+class CellType(Enum):
+    EMPTY = " "
+    TREE = "🌲"
+    BURNING = "🔥"
+    WATER = "🌊"
+    HELICOPTER = "🚁"
+    HOSPITAL = "🏥"
+    SHOP = "🏪"
+    CLOUD = "☁️"
+
+class Game:
+    def __init__(self, width=20, height=10):
+        self.width = width
+        self.height = height
+        self.grid = []
+        self.helicopter = {"x": 0, "y": 0, "water": 0, "max_water": 1, "health": 3}
+        self.score = 0
+        self.weather = "sunny"
+        self.weather_duration = 0
+        self.init_game()
+    
+    def init_game(self):
+        """Инициализация игрового поля"""
+        self.grid = [[CellType.EMPTY for _ in range(self.width)] for _ in range(self.height)]
+        self._generate_rivers()
+        self._generate_trees()
+        self._place_special_buildings()
+        self._place_helicopter()
+    
+    def _generate_rivers(self):
+        """Генерация рек на карте"""
+        for _ in range(random.randint(3, 5)):
+            x, y = random.randint(0, self.width-1), random.randint(0, self.height-1)
+            for _ in range(random.randint(3, 8)):
+                self.grid[y][x] = CellType.WATER
+                direction = random.choice(["left", "right", "up", "down"])
+                if direction == "left" and x > 0: x -= 1
+                elif direction == "right" and x < self.width-1: x += 1
+                elif direction == "up" and y > 0: y -= 1
+                elif direction == "down" and y < self.height-1: y += 1
+    
+    def _generate_trees(self):
+        """Генерация деревьев на карте"""
+        tree_count = int(self.width * self.height * 0.3)
+        for _ in range(tree_count):
+            x, y = random.randint(0, self.width-1), random.randint(0, self.height-1)
+            if self.grid[y][x] == CellType.EMPTY:
+                self.grid[y][x] = CellType.TREE
+    
+    def _place_special_buildings(self):
+        """Размещение госпиталя и магазина"""
+        buildings = [CellType.HOSPITAL, CellType.SHOP]
+        for building in buildings:
+            while True:
+                x, y = random.randint(0, self.width-1), random.randint(0, self.height-1)
+                if self.grid[y][x] == CellType.EMPTY:
+                    self.grid[y][x] = building
+                    break
+    
+    def _place_helicopter(self):
+        """Размещение вертолёта на пустой клетке"""
+        while True:
+            x, y = random.randint(0, self.width-1), random.randint(0, self.height-1)
+            if self.grid[y][x] == CellType.EMPTY:
+                self.helicopter["x"], self.helicopter["y"] = x, y
+                break
+    
+    def draw(self):
+        """Отрисовка игрового поля"""
+        os.system("cls" if os.name == "nt" else "clear")
+        print(f"Очки: {self.score} | Вода: {self.helicopter['water']}/{self.helicopter['max_water']} | Здоровье: {self.helicopter['health']}")
+        print(f"Погода: {self.weather}")
+        
+        for y in range(self.height):
+            for x in range(self.width):
+                if x == self.helicopter["x"] and y == self.helicopter["y"]:
+                    print(CellType.HELICOPTER.value, end="")
+                else:
+                    print(self.grid[y][x].value, end="")
+            print()
+    
+    def move_helicopter(self, dx, dy):
+        """Перемещение вертолёта"""
+        new_x = self.helicopter["x"] + dx
+        new_y = self.helicopter["y"] + dy
+        
+        if 0 <= new_x < self.width and 0 <= new_y < self.height:
+            self.helicopter["x"], self.helicopter["y"] = new_x, new_y
+            self._check_cell()
+            return True
+        return False
+    
+    def _check_cell(self):
+        """Проверка клетки под вертолётом"""
+        x, y = self.helicopter["x"], self.helicopter["y"]
+        cell = self.grid[y][x]
+        
+        if cell == CellType.WATER and self.helicopter["water"] < self.helicopter["max_water"]:
+            self.helicopter["water"] += 1
+        elif cell == CellType.BURNING and self.helicopter["water"] > 0:
+            self.helicopter["water"] -= 1
+            self.grid[y][x] = CellType.TREE
+            self.score += 10
+        elif cell == CellType.HOSPITAL:
+            if self.score >= 50 and self.helicopter["health"] < 3:
+                self.helicopter["health"] += 1
+                self.score -= 50
+        elif cell == CellType.SHOP:
+            if self.score >= 100:
+                self.helicopter["max_water"] += 1
+                self.score -= 100
+    
+    def update(self):
+        """Обновление состояния игры"""
+        self._spread_fire()
+        self._generate_weather()
+        self._check_game_over()
+    
+    def _spread_fire(self):
+        """Распространение огня"""
+        new_fires = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.grid[y][x] == CellType.BURNING:
+                    for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+                        nx, ny = x + dx, y + dy
+                        if 0 <= nx < self.width and 0 <= ny < self.height:
+                            if self.grid[ny][nx] == CellType.TREE and random.random() < 0.3:
+                                new_fires.append((nx, ny))
+        
+        for x, y in new_fires:
+            self.grid[y][x] = CellType.BURNING
+        
+        # Удаление сгоревших деревьев
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.grid[y][x] == CellType.BURNING and random.random() < 0.1:
+                    self.grid[y][x] = CellType.EMPTY
+                    self.score -= 5
+    
+    def _generate_weather(self):
+        """Генерация погодных условий"""
+        if self.weather_duration <= 0:
+            self.weather = random.choice(["sunny", "rainy", "stormy"])
+            self.weather_duration = random.randint(5, 15)
+        else:
+            self.weather_duration -= 1
+        
+        if self.weather == "rainy" and random.random() < 0.2:
+            self._extinguish_random_fire()
+        elif self.weather == "stormy" and random.random() < 0.1:
+            self._start_random_fire()
+    
+    def _extinguish_random_fire(self):
+        """Дождь тушит случайный пожар"""
+        fires = [(x,y) for y in range(self.height) for x in range(self.width) 
+                if self.grid[y][x] == CellType.BURNING]
+        if fires:
+            x, y = random.choice(fires)
+            self.grid[y][x] = CellType.TREE
+    
+    def _start_random_fire(self):
+        """Гроза вызывает случайный пожар"""
+        trees = [(x,y) for y in range(self.height) for x in range(self.width) 
+                if self.grid[y][x] == CellType.TREE]
+        if trees:
+            x, y = random.choice(trees)
+            self.grid[y][x] = CellType.BURNING
+    
+    def _check_game_over(self):
+        """Проверка условий окончания игры"""
+        if self.helicopter["health"] <= 0:
+            print("Игра окончена! Ваш счёт:", self.score)
+            exit()
+    
+    def save_game(self, filename):
+        """Сохранение игры в файл"""
+        data = {
+            "width": self.width,
+            "height": self.height,
+            "grid": [[cell.value for cell in row] for row in self.grid],
+            "helicopter": self.helicopter,
+            "score": self.score,
+            "weather": self.weather,
+            "weather_duration": self.weather_duration
+        }
+        with open(filename, "w") as f:
+            json.dump(data, f)
+    
+    def load_game(self, filename):
+        """Загрузка игры из файла"""
+        with open(filename, "r") as f:
+            data = json.load(f)
+        
+        self.width = data["width"]
+        self.height = data["height"]
+        self.grid = [[CellType(cell) for cell in row] for row in data["grid"]]
+        self.helicopter = data["helicopter"]
+        self.score = data["score"]
+        self.weather = data["weather"]
+        self.weather_duration = data["weather_duration"]
+
+def main():
+    game = Game(30, 15)
+    
+    while True:
+        game.draw()
+        game.update()
+        
+        try:
+            key = input("Управление (WASD-движение, Q-выход, S-сохранить, L-загрузить): ").lower()
+            
+            if key == "q":
+                break
+            elif key == "s":
+                game.save_game("savegame.json")
+                print("Игра сохранена!")
+                time.sleep(1)
+                continue
+            elif key == "l":
+                game.load_game("savegame.json")
+                print("Игра загружена!")
+                time.sleep(1)
+                continue
+            
+            if key == "w":
+                game.move_helicopter(0, -1)
+            elif key == "a":
+                game.move_helicopter(-1, 0)
+            elif key == "s":
+                game.move_helicopter(0, 1)
+            elif key == "d":
+                game.move_helicopter(1, 0)
+        
+        except Exception as e:
+            print("Ошибка:", e)
+            time.sleep(1)
+
+if __name__ == "__main__":
+    main()
