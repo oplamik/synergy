@@ -1,0 +1,38 @@
+class CashRegister:
+    def __init__(self, initial_amount=0):
+        """Инициализация кассы с начальной суммой (по умолчанию 0)"""
+        self.balance = initial_amount
+    
+    def top_up(self, amount):
+        """Пополнить кассу на указанную сумму"""
+        if amount < 0:
+            raise ValueError("Сумма пополнения не может быть отрицательной")
+        self.balance += amount
+    
+    def count_1000(self):
+        """Возвращает количество целых тысяч в кассе"""
+        return self.balance // 1000
+    
+    def take_away(self, amount):
+        """Изъять сумму из кассы. Если недостаточно средств - вызывает ошибку"""
+        if amount < 0:
+            raise ValueError("Сумма изъятия не может быть отрицательной")
+        if amount > self.balance:
+            raise ValueError("Недостаточно денег в кассе")
+        self.balance -= amount
+
+kassa = CashRegister(5000)  # Создаем кассу с начальным балансом 5000
+
+kassa.top_up(3000)         # Пополняем на 3000
+print(kassa.balance)       # Выведет: 8000
+
+thousands = kassa.count_1000()
+print(thousands)           # Выведет: 8 (целых тысяч)
+
+kassa.take_away(4500)     # Забираем 4500
+print(kassa.balance)       # Выведет: 3500
+
+try:
+    kassa.take_away(4000)  # Пытаемся забрать больше, чем есть
+except ValueError as e:
+    print(e)               # Выведет: Недостаточно денег в кассе
